@@ -47,6 +47,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import nom.tam.fits.compress.CompressionManager;
 import nom.tam.fits.utilities.FitsCheckSum;
 import nom.tam.util.ArrayDataInput;
@@ -55,8 +56,7 @@ import nom.tam.util.BufferedDataInputStream;
 import nom.tam.util.BufferedDataOutputStream;
 import nom.tam.util.BufferedFile;
 import nom.tam.util.RandomAccess;
-import nom.tam.util.SaveClose;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import nom.tam.util.SafeClose;
 
 /**
  * This class provides access to routines to allow users to read and write FITS
@@ -133,71 +133,6 @@ public class Fits implements Closeable {
      */
     private static final Logger LOG = Logger.getLogger(Fits.class.getName());
 
-    /**
-     * @return a newly created HDU from the given Data.
-     * @param data
-     *            The data to be described in this HDU.
-     * @param <DataClass>
-     *            the class of the HDU
-     * @throws FitsException
-     *             if the operation failed
-     */
-    public static <DataClass extends Data> BasicHDU<DataClass> makeHDU(DataClass data) throws FitsException {
-        Header hdr = new Header();
-        data.fillHeader(hdr);
-        return FitsFactory.hduFactory(hdr, data);
-    }
-
-    /**
-     * @return a newly created HDU from the given header.
-     * @param h
-     *            The header which describes the FITS extension
-     * @throws FitsException
-     *             if the header could not be converted to a HDU.
-     */
-    public static BasicHDU<?> makeHDU(Header h) throws FitsException {
-        Data d = FitsFactory.dataFactory(h);
-        return FitsFactory.hduFactory(h, d);
-    }
-
-    /**
-     * @return a newly created HDU from the given data kernel.
-     * @param o
-     *            The data to be described in this HDU.
-     * @throws FitsException
-     *             if the parameter could not be converted to a HDU.
-     */
-    public static BasicHDU<?> makeHDU(Object o) throws FitsException {
-        return FitsFactory.hduFactory(o);
-    }
-
-    /**
-     * @return the version of the library.
-     */
-    public static String version() {
-        Properties props = new Properties();
-        InputStream versionProperties = null;
-        try {
-            versionProperties = Fits.class.getResourceAsStream("/META-INF/maven/gov.nasa.gsfc.heasarc/nom-tam-fits/pom.properties");
-            props.load(versionProperties);
-            return props.getProperty("version");
-        } catch (IOException e) {
-            LOG.log(Level.INFO, "reading version failed, ignoring", e);
-            return "unknown";
-        } finally {
-            saveClose(versionProperties);
-        }
-    }
-
-    /**
-     * close the input stream, and ignore eventual errors.
-     * 
-     * @param in
-     *            the input stream to close.
-     */
-    public static void saveClose(InputStream in) {
-        SaveClose.close(in);
-    }
 
     /**
      * The input stream associated with this Fits object.
@@ -396,6 +331,72 @@ public class Fits implements Closeable {
         this(myURL);
         LOG.log(Level.INFO, "compression ignored, will be autodetected. was set to " + compressed);
     }
+    /**
+     * @return a newly created HDU from the given Data.
+     * @param data
+     *            The data to be described in this HDU.
+     * @param <DataClass>
+     *            the class of the HDU
+     * @throws FitsException
+     *             if the operation failed
+     */
+    public static <DataClass extends Data> BasicHDU<DataClass> makeHDU(DataClass data) throws FitsException {
+        Header hdr = new Header();
+        data.fillHeader(hdr);
+        return FitsFactory.hduFactory(hdr, data);
+    }
+
+    /**
+     * @return a newly created HDU from the given header.
+     * @param h
+     *            The header which describes the FITS extension
+     * @throws FitsException
+     *             if the header could not be converted to a HDU.
+     */
+    public static BasicHDU<?> makeHDU(Header h) throws FitsException {
+        Data d = FitsFactory.dataFactory(h);
+        return FitsFactory.hduFactory(h, d);
+    }
+
+    /**
+     * @return a newly created HDU from the given data kernel.
+     * @param o
+     *            The data to be described in this HDU.
+     * @throws FitsException
+     *             if the parameter could not be converted to a HDU.
+     */
+    public static BasicHDU<?> makeHDU(Object o) throws FitsException {
+        return FitsFactory.hduFactory(o);
+    }
+
+    /**
+     * @return the version of the library.
+     */
+    public static String version() {
+        Properties props = new Properties();
+        InputStream versionProperties = null;
+        try {
+            versionProperties = Fits.class.getResourceAsStream("/META-INF/maven/gov.nasa.gsfc.heasarc/nom-tam-fits/pom.properties");
+            props.load(versionProperties);
+            return props.getProperty("version");
+        } catch (IOException e) {
+            LOG.log(Level.INFO, "reading version failed, ignoring", e);
+            return "unknown";
+        } finally {
+            saveClose(versionProperties);
+        }
+    }
+
+    /**
+     * close the input stream, and ignore eventual errors.
+     *
+     * @param in
+     *            the input stream to close.
+     */
+    public static void saveClose(InputStream in) {
+        SafeClose.close(in);
+    }
+
 
     /**
      * Add an HDU to the Fits object. Users may intermix calls to functions
@@ -848,7 +849,7 @@ public class Fits implements Closeable {
             bf = new BufferedFile(file, "rw");
             write(bf);
         } finally {
-            SaveClose.close(bf);
+            SafeClose.close(bf);
         }
     }
 

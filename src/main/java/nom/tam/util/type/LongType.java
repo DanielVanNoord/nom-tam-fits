@@ -60,8 +60,8 @@ class LongType extends PrimitiveTypeBase<LongBuffer> {
     }
 
     @Override
-    public void getArray(LongBuffer buffer, Object array, int length) {
-        buffer.get((long[]) array, 0, length);
+    public void getArray(LongBuffer buffer, Object array, int offset, int length) {
+        buffer.get((long[]) array, offset, length);
     }
 
     @Override

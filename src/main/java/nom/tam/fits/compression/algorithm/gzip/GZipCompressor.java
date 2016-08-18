@@ -17,7 +17,7 @@ import nom.tam.util.ArrayFuncs;
 import nom.tam.util.ByteBufferInputStream;
 import nom.tam.util.ByteBufferOutputStream;
 import nom.tam.util.FitsIO;
-import nom.tam.util.SaveClose;
+import nom.tam.util.SafeClose;
 import nom.tam.util.type.PrimitiveType;
 import nom.tam.util.type.PrimitiveTypeHandler;
 import nom.tam.util.type.PrimitiveTypes;
@@ -212,6 +212,8 @@ public abstract class GZipCompressor<T extends Buffer> implements ICompressor<T>
 
     private static final int DEFAULT_GZIP_BUFFER_SIZE = 65536;
 
+    private static final int MINIMAL_GZIP_BUFFER_SIZE = 65536;
+
     protected final int primitiveSize;
 
     protected byte[] buffer = new byte[DEFAULT_GZIP_BUFFER_SIZE];
@@ -244,7 +246,7 @@ public abstract class GZipCompressor<T extends Buffer> implements ICompressor<T>
         } catch (IOException e) {
             throw new IllegalStateException("could not gzip data", e);
         } finally {
-            SaveClose.close(zip);
+            SafeClose.close(zip);
         }
         compressed.limit(compressed.position());
         return true;
@@ -269,7 +271,7 @@ public abstract class GZipCompressor<T extends Buffer> implements ICompressor<T>
         } catch (IOException e) {
             throw new IllegalStateException("could not gunzip data", e);
         } finally {
-            SaveClose.close(zip);
+            SafeClose.close(zip);
         }
     }
 
@@ -306,7 +308,7 @@ public abstract class GZipCompressor<T extends Buffer> implements ICompressor<T>
     }
 
     protected GZIPOutputStream createGZipOutputStream(int length, ByteBuffer compressed) throws IOException {
-        return new GZIPOutputStream(new ByteBufferOutputStream(compressed), Math.min(length * 2, DEFAULT_GZIP_BUFFER_SIZE));
+        return new GZIPOutputStream(new ByteBufferOutputStream(compressed), Math.min(Math.max(length * 2, MINIMAL_GZIP_BUFFER_SIZE), DEFAULT_GZIP_BUFFER_SIZE));
     }
 
     protected abstract void getPixel(T pixelData, byte[] pixelBytes);

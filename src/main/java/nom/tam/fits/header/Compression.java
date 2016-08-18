@@ -38,6 +38,14 @@ package nom.tam.fits.header;
  */
 public enum Compression implements IFitsHeader {
     /**
+     * (required keyword) This keyword must have the logical value T. The value
+     * field of this keyword shall be ’T’ to indicate that the FITS binary table
+     * extension contains a compressed BINTABLE, and that logically this
+     * extension should be interpreted as a tile-compressed binary table.
+     */
+    ZTABLE(HDU.ANY, VALUE.LOGICAL, ""),
+
+    /**
      * (required keyword) This keyword must have the logical value T. It
      * indicates that the FITS binary table extension contains a compressed
      * image and that logically this extension should be interpreted as an image
@@ -123,8 +131,7 @@ public enum Compression implements IFitsHeader {
     ZMASKCMP(HDU.ANY, VALUE.STRING, ""),
 
     /**
-     *
-     The following optional keyword is defined to store a verbatim copy of the
+     * The following optional keyword is defined to store a verbatim copy of the
      * the value and comment field of the corresponding keyword in the original
      * uncompressed FITS image. These keywords can be used to reconstruct an
      * identical copy of the original FITS file when the image is
@@ -135,8 +142,7 @@ public enum Compression implements IFitsHeader {
     ZSIMPLE(HDU.PRIMARY, VALUE.LOGICAL, "", Standard.SIMPLE),
 
     /**
-     *
-     The following optional keyword is defined to store a verbatim copy of the
+     * The following optional keyword is defined to store a verbatim copy of the
      * the value and comment field of the corresponding keyword in the original
      * uncompressed FITS image. These keywords can be used to reconstruct an
      * identical copy o f the original FITS file when the image is
@@ -147,8 +153,7 @@ public enum Compression implements IFitsHeader {
     ZTENSION(HDU.ANY, VALUE.STRING, "", Standard.XTENSION),
 
     /**
-     *
-     The following optional keyword is defined to store a verbatim copy of the
+     * The following optional keyword is defined to store a verbatim copy of the
      * the value and comment field of the corresponding keyword in the original
      * uncompressed FITS image. These keywords can be used to reconstruct an
      * identical copy of the original FITS file when the image is
@@ -159,8 +164,7 @@ public enum Compression implements IFitsHeader {
     ZEXTEND(HDU.PRIMARY, VALUE.LOGICAL, "", Standard.EXTEND),
 
     /**
-     *
-     The following optional keyword is defined to store a verbatim copy of the
+     * The following optional keyword is defined to store a verbatim copy of the
      * the value and comment field of the corresponding keyword in the original
      * uncompressed FITS image. These keywords can be used to reconstruct an
      * identical copy o f the original FITS file when the image is
@@ -168,12 +172,10 @@ public enum Compression implements IFitsHeader {
      * the original uncompressed image was contained in the primary array of the
      * FITS file,
      */
-    @Deprecated
-    ZBLOCKED(HDU.PRIMARY, VALUE.LOGICAL, "", Standard.BLOCKED),
+    @Deprecated ZBLOCKED(HDU.PRIMARY, VALUE.LOGICAL, "", Standard.BLOCKED),
 
     /**
-     *
-     The following optional keyword is defined to store a verbatim copy of the
+     * The following optional keyword is defined to store a verbatim copy of the
      * the value and comment field of the corresponding keyword in the original
      * uncompressed FITS image. These keywords can be used to reconstruct an
      * identical copy o f the original FITS file when the image is
@@ -183,8 +185,7 @@ public enum Compression implements IFitsHeader {
     ZPCOUNT(HDU.EXTENSION, VALUE.INTEGER, "", Standard.PCOUNT),
 
     /**
-     *
-     The following optional keyword is defined to store a verbatim copy of the
+     * The following optional keyword is defined to store a verbatim copy of the
      * the value and comment field of the corresponding keyword in the original
      * uncompressed FITS image. These keywords can be used to reconstruct an
      * identical copy o f the original FITS file when the image is
@@ -194,8 +195,7 @@ public enum Compression implements IFitsHeader {
     ZGCOUNT(HDU.EXTENSION, VALUE.INTEGER, "", Standard.GCOUNT),
 
     /**
-     *
-     The following optional keyword is defined to store a verbatim copy of the
+     * The following optional keyword is defined to store a verbatim copy of the
      * the value and comment field of the corresponding keyword in the original
      * uncompressed FITS image. These keywords can be used to reconstruct an
      * identical copy o f the original FITS file when the image is
@@ -204,8 +204,7 @@ public enum Compression implements IFitsHeader {
     ZHECKSUM(HDU.ANY, VALUE.STRING, "", Checksum.CHECKSUM),
 
     /**
-     *
-     The following optional keyword is defined to store a verbatim copy of the
+     * The following optional keyword is defined to store a verbatim copy of the
      * the value and comment field of the corresponding keyword in the original
      * uncompressed FITS image. These keywords can be used to reconstruct an
      * identical copy o f the original FITS file when the image is
@@ -236,7 +235,33 @@ public enum Compression implements IFitsHeader {
      * The recommended value for ZBLANK is -2147483648 (the largest negative
      * 32-bit integer).
      */
-    ZBLANK(HDU.ANY, VALUE.INTEGER, "");
+    ZBLANK(HDU.ANY, VALUE.INTEGER, ""),
+
+    /**
+     * The value field of this keyword shall contain an integer representing the
+     * number of rows of data from the original binary table that are contained
+     * in each tile of the compressed table. The number of rows in the last tile
+     * may be less than in the previous tiles. Note that if the entire table is
+     * compressed as a single tile, then the compressed table will only contains
+     * a single row, and the ZTILELEN and ZNAXIS2 keywords will have the same
+     * value.
+     */
+    ZTILELEN(HDU.ANY, VALUE.INTEGER, ""),
+
+    /**
+     * The value field of these keywords shall contain the character string
+     * values of the corresponding TFORMn keywords that defines the data type of
+     * column n in the original uncompressed FITS table.
+     */
+    ZFORMn(HDU.ANY, VALUE.STRING, "", Standard.TFORMn),
+
+    /**
+     * The value field of these keywords shall contain a charac- ter string
+     * giving the mnemonic name of the algorithm that was used to compress
+     * column n of the table. The current allowed values are GZIP_1, GZIP_2, and
+     * RICE_1, and the corresponding algorithms
+     */
+    ZCTYPn(HDU.ANY, VALUE.STRING, "");
 
     /**
      * This is the simplest option in which no dithering is performed. The
@@ -350,6 +375,11 @@ public enum Compression implements IFitsHeader {
      * alternative name for 'RICE 1'
      */
     public static final String ZCMPTYPE_RICE_ONE = "RICE_ONE";
+
+    /**
+     * compression algorithm that specifies that the data is uncompressed.
+     */
+    public static final String ZCMPTYPE_NOCOMPRESS = "NOCOMPRESS";
 
     /**
      * Each row of this variable-length column contains the byte st ream that is

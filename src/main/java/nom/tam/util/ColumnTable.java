@@ -38,10 +38,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import nom.tam.util.type.PrimitiveType;
 import nom.tam.util.type.PrimitiveTypeHandler;
 import nom.tam.util.type.PrimitiveTypes;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * A data table is conventionally considered to consist of rows and columns,
@@ -280,9 +280,6 @@ public class ColumnTable<T> implements DataTable {
     /** The number of rows */
     private int nrow;
 
-    /** The size of a row in bytes */
-    private int rowSize;
-
     /**
      * The base type of each row (using the second character of the [x class
      * names of the arrays.
@@ -345,8 +342,6 @@ public class ColumnTable<T> implements DataTable {
 
         String classname = newColumn.getClass().getName();
         this.nrow = checkColumnConsistency(newColumn, classname, this.nrow, size);
-
-        this.rowSize += this.nrow * ArrayFuncs.getBaseLength(newColumn);
 
         int ncol = this.arrays.length;
 
@@ -482,7 +477,6 @@ public class ColumnTable<T> implements DataTable {
         }
 
         this.nrow = ratio;
-        this.rowSize = newRowSize;
         this.arrays = newArrays;
         this.sizes = newSizes;
     }
@@ -528,7 +522,6 @@ public class ColumnTable<T> implements DataTable {
     /**
      * Delete a contiguous set of columns from the table.
      * 
-     * @return the rowlength
      * @param start
      *            The first column (0-indexed) to be deleted.
      * @param len
@@ -537,16 +530,13 @@ public class ColumnTable<T> implements DataTable {
      *             if the request goes outside the boundaries of the table or if
      *             the length is negative.
      */
-    public int deleteColumns(int start, int len) throws TableException {
+    public void deleteColumns(int start, int len) throws TableException {
         int ncol = this.arrays.length;
         if (start < 0 || len < 0 || start + len > ncol) {
             throw new TableException("Invalid request to delete columns start: " + start + " length:" + len + " for table with " + ncol + " columns.");
         }
         if (len == 0) {
-            return this.rowSize;
-        }
-        for (int i = start; i < start + len; i += 1) {
-            this.rowSize -= this.sizes[i] * ArrayFuncs.getBaseLength(this.arrays[i]);
+            return;
         }
         int ocol = ncol;
         ncol -= len;
@@ -574,7 +564,6 @@ public class ColumnTable<T> implements DataTable {
         this.types = newTypes;
 
         initializePointers();
-        return this.rowSize;
     }
 
     /**
@@ -902,9 +891,6 @@ public class ColumnTable<T> implements DataTable {
      *             if the write operation failed
      */
     public void write(ArrayDataOutput os) throws IOException {
-        if (this.rowSize == 0) {
-            return;
-        }
         int[] columnIndex = new int[MAX_COLUMN_INDEXES];
         for (int row = 0; row < this.nrow; row += 1) {
             Arrays.fill(columnIndex, 0);
@@ -915,9 +901,77 @@ public class ColumnTable<T> implements DataTable {
                 int size = this.sizes[col];
 
                 char colType = this.types[col];
-                PointerAccess<?> accessor = POINTER_ACCESSORS_BY_TYPE[colType];
-                accessor.write(this, os, columnIndex[colType], arrOffset, size);
+                POINTER_ACCESSORS_BY_TYPE[colType].write(this, os, columnIndex[colType], arrOffset, size);
                 columnIndex[colType] += 1;
+            }
+        }
+    }
+
+    /**
+     * Write a column of a table.
+     * 
+     * @param os
+     *            the output stream to write to.
+     * @param rowStart
+     *            first row to write
+     * @param rowEnd
+     *            row number that should not be written anymore
+     * @param columnNr
+     *            zero based column number to write.
+     * @throws IOException
+     *             if the write operation failed
+     */
+    public void write(ArrayDataOutput os, int rowStart, int rowEnd, int columnNr) throws IOException {
+        int[] columnIndex = new int[MAX_COLUMN_INDEXES];
+        for (int row = 0; row < this.nrow; row += 1) {
+            if (row >= rowStart && row < rowEnd) {
+                Arrays.fill(columnIndex, 0);
+                // Loop over the columns within the row.
+                for (int col = 0; col < this.arrays.length; col += 1) {
+
+                    int arrOffset = this.sizes[col] * row;
+                    int size = this.sizes[col];
+
+                    char colType = this.types[col];
+                    if (columnNr == col) {
+                        POINTER_ACCESSORS_BY_TYPE[colType].write(this, os, columnIndex[colType], arrOffset, size);
+                    }
+                    columnIndex[colType] += 1;
+                }
+            }
+        }
+    }
+
+    /**
+     * Read a column of a table.
+     * 
+     * @param is
+     *            The input stream to read from.
+     * @param rowStart
+     *            first row to read
+     * @param rowEnd
+     *            row number that should not be read anymore
+     * @param columnNr
+     *            the columnNumber to read.
+     * @throws IOException
+     *             if the reading failed
+     */
+    public void read(ArrayDataInput is, int rowStart, int rowEnd, int columnNr) throws IOException {
+        int[] columnIndex = new int[MAX_COLUMN_INDEXES];
+        // While we have not finished reading the table..
+        for (int row = 0; row < this.nrow; row += 1) {
+            if (row >= rowStart && row < rowEnd) {
+                Arrays.fill(columnIndex, 0);
+                // Loop over the columns within the row.
+                for (int col = 0; col < this.arrays.length; col += 1) {
+                    int arrOffset = this.sizes[col] * row;
+                    int size = this.sizes[col];
+                    char colType = this.types[col];
+                    if (col == columnNr) {
+                        POINTER_ACCESSORS_BY_TYPE[colType].read(this, is, columnIndex[colType], arrOffset, size);
+                    }
+                    columnIndex[colType] += 1;
+                }
             }
         }
     }

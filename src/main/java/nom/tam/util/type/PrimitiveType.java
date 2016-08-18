@@ -52,7 +52,11 @@ public interface PrimitiveType<B extends Buffer> {
 
     void getArray(B buffer, Object array, int length);
 
+    void getArray(B buffer, Object array, int offset, int length);
+
     boolean individualSize();
+
+    boolean is(PrimitiveType<? extends Buffer> d);
 
     Object newArray(int length);
 
@@ -77,6 +81,4 @@ public interface PrimitiveType<B extends Buffer> {
     B wrap(Object array);
 
     Class<?> wrapperClass();
-
-    boolean is(PrimitiveType<? extends Buffer> d);
 }

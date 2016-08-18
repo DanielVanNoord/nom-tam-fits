@@ -60,8 +60,8 @@ class FloatType extends PrimitiveTypeBase<FloatBuffer> {
     }
 
     @Override
-    public void getArray(FloatBuffer buffer, Object array, int length) {
-        buffer.get((float[]) array, 0, length);
+    public void getArray(FloatBuffer buffer, Object array, int offset, int length) {
+        buffer.get((float[]) array, offset, length);
     }
 
     @Override

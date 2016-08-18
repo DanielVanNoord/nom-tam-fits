@@ -57,8 +57,8 @@ class ByteType extends PrimitiveTypeBase<ByteBuffer> {
     }
 
     @Override
-    public void getArray(ByteBuffer buffer, Object array, int length) {
-        buffer.get((byte[]) array, 0, length);
+    public void getArray(ByteBuffer buffer, Object array, int offset, int length) {
+        buffer.get((byte[]) array, offset, length);
     }
 
     @Override

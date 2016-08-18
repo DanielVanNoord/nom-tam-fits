@@ -45,6 +45,7 @@ import static nom.tam.fits.header.Standard.TTYPEn;
 import static nom.tam.fits.header.Standard.TUNITn;
 import static nom.tam.fits.header.Standard.TZEROn;
 import static nom.tam.fits.header.Standard.XTENSION;
+import static nom.tam.fits.header.Standard.XTENSION_BINTABLE;
 
 import java.io.PrintStream;
 
@@ -67,6 +68,11 @@ public class BinaryTableHDU extends TableHDU<BinaryTable> {
         TDISPn,
         TDIMn
     };
+
+
+    public BinaryTableHDU(Header hdr, BinaryTable datum) {
+        super(hdr, datum);
+    }
 
     /**
      * @return Encapsulate data in a BinaryTable data type
@@ -110,7 +116,7 @@ public class BinaryTableHDU extends TableHDU<BinaryTable> {
             return false;
         }
         xten = xten.trim();
-        return xten.equals("BINTABLE") || xten.equals("A3DTABLE");
+        return xten.equals(XTENSION_BINTABLE) || xten.equals("A3DTABLE");
     }
 
     /**
@@ -136,10 +142,6 @@ public class BinaryTableHDU extends TableHDU<BinaryTable> {
         Header hdr = new Header();
         data.fillHeader(hdr);
         return hdr;
-    }
-
-    public BinaryTableHDU(Header hdr, BinaryTable datum) {
-        super(hdr, datum);
     }
 
     @Override

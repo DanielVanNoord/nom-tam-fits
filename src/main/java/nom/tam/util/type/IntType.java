@@ -60,8 +60,8 @@ class IntType extends PrimitiveTypeBase<IntBuffer> {
     }
 
     @Override
-    public void getArray(IntBuffer buffer, Object array, int length) {
-        buffer.get((int[]) array, 0, length);
+    public void getArray(IntBuffer buffer, Object array, int offset, int length) {
+        buffer.get((int[]) array, offset, length);
     }
 
     @Override

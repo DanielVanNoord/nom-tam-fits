@@ -110,13 +110,23 @@ abstract class PrimitiveTypeBase<B extends Buffer> implements PrimitiveType<B> {
     }
 
     @Override
-    public void getArray(B buffer, Object array, int length) {
+    public final void getArray(B buffer, Object array, int length) {
+        getArray(buffer, array, 0, length);
+    }
+
+    @Override
+    public void getArray(B buffer, Object array, int offset, int length) {
         throw new UnsupportedOperationException("no primitive type");
     }
 
     @Override
     public boolean individualSize() {
         return this.individualSize;
+    }
+
+    @Override
+    public boolean is(PrimitiveType<? extends Buffer> other) {
+        return this.bitPix == other.bitPix();
     }
 
     @Override
@@ -188,10 +198,5 @@ abstract class PrimitiveTypeBase<B extends Buffer> implements PrimitiveType<B> {
     @Override
     public Class<?> wrapperClass() {
         return this.wrapperClass;
-    }
-
-    @Override
-    public boolean is(PrimitiveType<? extends Buffer> other) {
-        return this.bitPix == other.bitPix();
     }
 }

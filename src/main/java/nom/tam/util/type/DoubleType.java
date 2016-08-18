@@ -60,8 +60,8 @@ class DoubleType extends PrimitiveTypeBase<DoubleBuffer> {
     }
 
     @Override
-    public void getArray(DoubleBuffer buffer, Object array, int length) {
-        buffer.get((double[]) array, 0, length);
+    public void getArray(DoubleBuffer buffer, Object array, int offset, int length) {
+        buffer.get((double[]) array, offset, length);
     }
 
     @Override

@@ -58,8 +58,8 @@ class ShortType extends PrimitiveTypeBase<ShortBuffer> {
     }
 
     @Override
-    public void getArray(ShortBuffer buffer, Object array, int length) {
-        buffer.get((short[]) array, 0, length);
+    public void getArray(ShortBuffer buffer, Object array, int offset, int length) {
+        buffer.get((short[]) array, offset, length);
     }
 
     @Override
